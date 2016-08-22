@@ -1,4 +1,4 @@
-package io.terrafino.fp
+package io.terrafino.fp.datastructures
 
 object PartialF {
   def partial1[A, B, C](a: A, f: (A,B) => C): B => C =

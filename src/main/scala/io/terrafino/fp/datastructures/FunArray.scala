@@ -1,4 +1,4 @@
-package io.terrafino.fp
+package io.terrafino.fp.datastructures
 
 object FunArray extends App {
   def isSorted[A](as: Array[A], ordered: (A, A) => Boolean): Boolean = {

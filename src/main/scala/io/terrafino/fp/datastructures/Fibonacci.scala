@@ -1,4 +1,4 @@
-package io.terrafino.fp
+package io.terrafino.fp.datastructures
 
 object Fibonacci extends App {
 

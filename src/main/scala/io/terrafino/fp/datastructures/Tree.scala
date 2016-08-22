@@ -1,4 +1,4 @@
-package io.terrafino.fp
+package io.terrafino.fp.datastructures
 
 sealed trait Tree[+A]
 case class Leaf[A](value: A) extends Tree[A]
