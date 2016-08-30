@@ -64,6 +64,20 @@ trait Stream[+A] {
       case Cons(h, t) => Some((f(h()), t()))
       case _          => None
     }
+  
+  def tails: Stream[Stream[A]] =
+    unfold(this) {
+    case Cons(h, t) => Some((Cons(h, t), t()))
+    case _ => None
+  }
+  
+  def scanRight[B](z: B)(f: (A, => B) => B): Stream[B] =
+    foldRight((z, Stream(z)))((a, p0) => {
+      // p0 is passed by-name and used in by-name args in f and cons. So use lazy val to ensure only one evaluation...
+      lazy val p1 = p0
+      val b2 = f(a, p1._1)
+      (b2, cons(b2, p1._2))
+    })._2
 
   def filter(p: A => Boolean): Stream[A] =
     foldRight(empty[A])((a, b) => if (p(a)) cons(a, b) else b)
