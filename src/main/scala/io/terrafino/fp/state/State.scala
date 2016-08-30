@@ -112,6 +112,9 @@ object RNG {
 
 case class State[S, +A](run: S => (A, S)) {
 
+  def get[S]: State[S, S] = State(s => (s, s))
+  def set[S](s: S): State[S, Unit] = State(_ => ((), s))
+
   def map[B](f: A => B): State[S, B] = State { s =>
     val (a, s2) = run(s)
     (f(a), s2)
@@ -139,8 +142,22 @@ object State {
   def unit[S, A](a: A): State[S, A] = State { s => (a, s) }
 
   def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] =
-    fs.foldRight(unit[S, List[A]](List[A]())) ((f, acc) => f.map2(acc)(_ :: _))
+    fs.foldRight(unit[S, List[A]](List[A]()))((f, acc) => f.map2(acc)(_ :: _))
 
   type Rand[A] = State[RNG, A]
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = State { s =>
+    val start = ((s.candies, s.coins), s)
+    inputs.foldRight(start)((i, p) => {
+      val candies = p._1._1
+      val coins = p._1._2
+      val m = p._2
+      i match {
+        case Coin if m.locked && candies > 0 => ((candies, coins+1), Machine(false, candies, coins+1))
+        case Turn if !m.locked => ((candies-1, coins), Machine(true, candies-1, coins))
+        case Turn if m.locked => ((candies, coins), Machine(true, candies, coins))
+        case Coin if !m.locked => ((candies, coins), Machine(false, candies, coins))
+        case _ => ((candies, coins), Machine(false, candies, coins))
+      }
+    })
+  }
 }
